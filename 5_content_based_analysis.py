@@ -1,24 +1,37 @@
-## 5. Content based social media analysis
-import pandas as pd, matplotlib.pyplot as plt
-from textblob import TextBlob
-from wordcloud import WordCloud
+# Auto-install
+try:
+    import pandas as pd, matplotlib.pyplot as plt
+    from textblob import TextBlob
+    from wordcloud import WordCloud
+except:
+    import os; os.system("pip install pandas matplotlib textblob wordcloud")
+    import pandas as pd, matplotlib.pyplot as plt
+    from textblob import TextBlob
+    from wordcloud import WordCloud
+
 from collections import Counter
+import re
 
-# Simple Data
-data = ["I love this laptop! 😍", "Terrible battery life 😡", "Normal build quality", "Amazing speed! 🔥", "Bad screen"]
-df = pd.DataFrame(data, columns=["Content"])
+# Data
+data=["I love this laptop! 😍","Terrible battery life 😡","Normal build quality","Amazing speed! 🔥","Bad screen"]
+df=pd.DataFrame(data,columns=["Content"])
 
-# Shortest Sentiment & Keyword Logic
-df["Pol"] = df["Content"].apply(lambda t: TextBlob(t).sentiment.polarity)
-df["Sent"] = df["Pol"].apply(lambda p: "Pos" if p > 0 else ("Neg" if p < 0 else "Neu"))
-words = " ".join(data).lower().split()
+# Sentiment Analysis
+df["Polarity"]=df["Content"].apply(lambda t: round(TextBlob(t).sentiment.polarity,2))
+df["Sentiment"]=df["Polarity"].apply(lambda p:"Positive" if p>0 else("Negative" if p<0 else"Neutral"))
 
-# Print Summary
-print(df[["Content", "Sent"]], "\nTop Words:", Counter(words).most_common(3))
+# Keywords
+words=re.findall(r'\b\w+\b'," ".join(data).lower())
+top=Counter(words).most_common(5)
 
-# Quick Visuals
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
-df["Sent"].value_counts().plot(kind="pie", ax=ax1, title="Sentiment")
-ax2.imshow(WordCloud(background_color="white").generate(" ".join(words)))
-ax2.axis("off")
+# Clean Output
+print("\n--- Sentiment Analysis Table ---")
+print(df)
+print("\n--- Top 5 Keywords ---")
+for w,c in top: print(f"{w} : {c}")
+
+# Visuals
+fig,(ax1,ax2)=plt.subplots(1,2,figsize=(10,4))
+df["Sentiment"].value_counts().plot(kind="pie",autopct="%1.0f%%",ax=ax1,title="Sentiment Distribution")
+ax2.imshow(WordCloud(background_color="white").generate(" ".join(words))); ax2.set_title("Keyword Cloud"); ax2.axis("off")
 plt.show()
