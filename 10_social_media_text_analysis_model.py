@@ -1,13 +1,42 @@
-## 10. Social Media text analysis model
-import pandas as pd, matplotlib.pyplot as plt
-from textblob import TextBlob
+# Auto-install
+try:
+    import pandas as pd, matplotlib.pyplot as plt
+    from textblob import TextBlob
+except:
+    import os; os.system("pip install pandas matplotlib textblob")
+    import pandas as pd, matplotlib.pyplot as plt
+    from textblob import TextBlob
+
 from collections import Counter
-# Simple Data (Posts)
-posts = ["I love this product", "Bad service", "Great price!", "Very slow delivery", "Amazing experience"]
-# Analyze: Sentiment (Positive/Negative) & Word Count
-sentiment = ["Positive" if TextBlob(p).polarity > 0 else "Negative" for p in posts]
-words = Counter(" ".join(posts).lower().split()).most_common(3)
-# Quick Visual & Output
-pd.Series(sentiment).value_counts().plot(kind='bar', color=['green', 'red'])
-plt.title("Text Sentiment Analysis"); plt.show()
-print(f"Sentiment: {sentiment}\nTop Topics: {words}")
+import re
+
+# Data
+posts=["I love this product","Bad service","Great price!","Very slow delivery","Amazing experience"]
+
+# 🔹 Advanced Analysis
+df=pd.DataFrame(posts,columns=["Post"])
+df["Polarity"]=df["Post"].apply(lambda x: round(TextBlob(x).sentiment.polarity,2))
+df["Subjectivity"]=df["Post"].apply(lambda x: round(TextBlob(x).sentiment.subjectivity,2))
+df["Sentiment"]=df["Polarity"].apply(lambda p:"Positive" if p>0 else("Negative" if p<0 else"Neutral"))
+
+# 🔹 Keywords (cleaned)
+words=re.findall(r'\b\w+\b'," ".join(posts).lower())
+top=Counter(words).most_common(5)
+
+# 🔹 Visual
+df["Sentiment"].value_counts().plot(kind='bar',color=['green','red','gray'])
+plt.title("Sentiment Distribution"); plt.xlabel("Sentiment"); plt.ylabel("Count")
+plt.show()
+
+# 🔹 Output
+print("\n--- Detailed Sentiment Analysis ---")
+print(df)
+
+print("\n--- Top Keywords ---")
+for w,c in top: print(f"{w} : {c}")
+
+# 🔹 Insight
+print("\n📊 Insight:")
+print("- Positive sentiment indicates satisfaction")
+print("- Negative sentiment highlights service issues")
+print("- Keywords show main discussion topics")
