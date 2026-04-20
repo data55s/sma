@@ -1,28 +1,23 @@
-from yt_dlp import YoutubeDL
+# Auto-install if missing
+try:
+    from yt_dlp import YoutubeDL
+except:
+    import os; os.system("pip install yt-dlp pandas"); from yt_dlp import YoutubeDL
+
 import pandas as pd
 
-# Fetch YouTube data
-with YoutubeDL({"quiet": True}) as y:
-    r = y.extract_info("ytsearch20:Laptop Review", download=False)
+ydl_opts={"quiet":True,"no_warnings":True}
 
-# Extract required fields safely
-data = [[
-    v.get("title"),
-    v.get("uploader"),
-    v.get("view_count"),
-    v.get("like_count"),
-    v.get("comment_count"),
-    v.get("upload_date"),
-    v.get("duration"),
-    v.get("webpage_url")
-] for v in r.get("entries", []) if v]
+with YoutubeDL(ydl_opts) as y:
+    r=y.extract_info("ytsearch30:Laptop Review",download=False)  # fetch more
 
-# Create DataFrame
-df = pd.DataFrame(data, columns=[
-    "Title","Channel","Views","Likes",
-    "Comments","Upload Date","Duration","URL"
-])
+data=[[v["title"],v["uploader"],v["view_count"],
+       v.get("like_count"),v.get("comment_count"),
+       v["upload_date"],v["duration"],v["webpage_url"]]
+      for v in r["entries"] if v][:10]  # take only 10
 
-# Save + Display
-df.to_csv("youtube_business_data.csv", index=False)
-print(df.head())
+df=pd.DataFrame(data,columns=[
+"Title","Channel","Views","Likes","Comments","Upload Date","Duration","URL"])
+
+df.to_csv("youtube_business_data.csv",index=False)
+print(df.head(10))
